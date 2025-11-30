@@ -44,30 +44,6 @@
         bool active;
     } pBullet;
 
-
-//------------------------------------------------------------------------------------
-// Define Enemies
-//------------------------------------------------------------------------------------
-    typedef struct Enemy 
-    {
-        //Rectangle ePlaneFrameRec;
-        int enemySpeed;
-        int framesSpeed; //how many frames per second?
-        //Texture2D enemyTex1;//
-        //Texture2D enemyTex2;//
-        //Texture2D enemyTex3;//3 possible variants
-        //Texture2D enemyTexChoosen;//choosen variant
-        Texture2D enemyTex;
-        Rectangle enemyFrameRec;
-        Vector2 enemyPos;
-        int enemyType; //choose variant
-        int enemyCount;
-        bool active;
-        int eFramesSpeed; //how many frames per second?
-        int eCurrentFrame;
-        int eFramesCounter;
-    } Enemy;
-
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -107,45 +83,8 @@ int main(void)
     float pBulletSpeed = 15;
     int pBulletCount;
     float pBulletLife;
-
-    ////ENEMY PLANES
-    //Enemy *enemy = (Enemy *)malloc(MAX_ENEMIES); //array of enemies
-
-    int enemyCount;
-    int enemyType; //choose variant
-    //Vector2 enemyPos = {(GetRandomValue(0, screenWidth - 30)), (GetRandomValue(-500, 30))};
-    //Vector2 enemyPos = {(GetRandomValue(0, screenWidth - 30)), (GetRandomValue(-500, 30))};
-    
     bool active = false;
     int enemySpeed = 2;
-
-
-    ////INITIALIZE ENEMIES
-        Enemy enemy[MAX_ENEMIES] = {0};
-
-            
-        Vector2 enemyPos = { (float)(GetRandomValue(0, screenWidth - 30)), (float)(GetRandomValue(-500, 30)), };
-        Texture2D enemyTex1 = LoadTexture("resources/enemy/enemy1_strip3.png");
-        Texture2D enemyTex2 = LoadTexture("resources/enemy/enemy2_strip3.png");
-        Texture2D enemyTex3 = LoadTexture("resources/enemy/enemy3_strip3.png");
-        Texture2D enemyTex = LoadTexture("resources/enemy/enemy1_strip3.png");
-        Rectangle enemyFrameRec = { enemyPos.x, enemyPos.y, enemyTex.width/3, enemyTex.height };
-
-            for (int i = 0; i < MAX_ENEMIES; i++)
-            {
-                //enemy[i];
-                // enemy[i].enemyPos = {static_cast<float>(GetRandomValue(0, screenWidth - 30)), static_cast<float>(GetRandomValue(-500, 30))};
-                // enemy[i].enemyPos.x = GetRandomValue(0, screenWidth - 60);
-                // enemy[i].enemyPos.y = (GetRandomValue(-500, 30));
-                //enemy[i].enemyFrameRec = Rectangle{(float)(GetRandomValue(0, screenWidth - 30)), (float)(GetRandomValue(-500, 30)), (float)enemyTex.width/3, (float)enemyTex.height };
-                //Vector2 enemyPos = { (float)(GetRandomValue(0, screenWidth - 30)), (float)(GetRandomValue(-500, 30)), };
-                enemy[i].enemyTex;
-                enemy[i].enemyFrameRec;
-                enemy[i].active = true;
-
-                //enemyCount++;
-            }
-
 
     //sprite
     Texture2D enemyTex1 = LoadTexture("resources/enemy/enemy1_strip3.png");
@@ -203,7 +142,7 @@ int main(void)
             if (currentFrame > 5) currentFrame = 0;
 
             planeFrameRec.x = (float)currentFrame*(float)planeTex.width/3;
-            enemyFrameRec.x = (float)currentFrame*(float)enemyTex.width/3;
+            //enemyFrameRec.x = (float)currentFrame*(float)enemyTex.width/3;
         }
 
         float delta_time = GetFrameTime();
@@ -247,28 +186,6 @@ int main(void)
 
         //move player bullets
 
-        int max_enemies = 5;
-        ////init enemies
-
-        
-
-        //update enemies
-
-        enemyPos.y += enemySpeed;
-        // for (int i = 0; i < 5; i++)
-        //     {
-        //         if (i < MAX_ENEMIES)
-        //         {
-        //             enemy[i].enemyPos.y += enemySpeed;
-        //             //enemyCount++;
-        //         }
-        //     }
-
-        // for (int i = 0; i < enemyCount; i++)
-        // {
-        //     enemy[i].enemyPos.y += enemySpeed;
-        // }
-
         ////DRAW
         BeginDrawing();
 
@@ -288,53 +205,11 @@ int main(void)
             ////draw player
             //DrawTexture(planeTex, screenWidth/2 - planeTex.width/2, screenHeight/2 - planeTex.height/2, WHITE);
             DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
-
-            ////draw enemies
-            // for (int i = 0; i < MAX_ENEMIES; i++)
-            //     {
-            //         //spawn enemy
-            //         //Vector2 enemyPos = {50, 50};
-            //         // int random = GetRandomValue(1, 3);
-            //         // if(random == 1)
-            //         // {
-            //         //     DrawTextureRec(enemyTex1, enemy[i].ePlaneFrameRec, enemy[i].enemyPos, WHITE);
-            //         // }
-
-            //         // else if(random == 2)
-            //         // {
-            //         //     DrawTextureRec(enemyTex2, enemy[i].ePlaneFrameRec, enemy[i].enemyPos, WHITE);
-            //         // }
-
-            //         // else
-            //         // {
-            //         //     DrawTextureRec(enemyTex3, enemy[i].ePlaneFrameRec, enemy[i].enemyPos, WHITE);
-            //         // }
-            //         DrawTextureRec(enemyTex1, enemy[i].ePlaneFrameRec, enemy[i].enemyPos, WHITE);
-            //     }
-            
-            
-            for (int i = 0; i < MAX_ENEMIES; i++)
-            {
-                // if (i < MAX_ENEMIES)
-                // {
-                //     DrawTextureRec(enemyTex, ePlaneFrameRec, enemyPos, WHITE);
-                //     //enemyCount++;
-                // }
-
-                if(enemy[i].active == true)
-                {
-                    DrawTextureRec(enemy[i].enemyTex, enemy[i].enemyFrameRec,
-                    enemy[i].enemyPos, WHITE);
-                }
-            }
-            
-
+                          
             //draw hud
             DrawTexture(hudBar, 0, screenHeight - hudBar.height, WHITE);
             DrawText(TextFormat("%03i", score), 230, screenHeight - 67, 20, YELLOW);
 
-
-            
             //DrawTexture(pBullet, planePos.y, planePos.x, WHITE);
             
 
