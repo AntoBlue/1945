@@ -80,25 +80,29 @@ int main(void)
 
     ////PLAYER BULLETS////
     //pBullet *p_bullets = (pBullet *)RL_CALLOC(PLAYER_BULLET_MAX_AMOUNT, sizeof(pBullet)); //p bullet array
-    pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT] = {0};
-    Rectangle pbulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
-    for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-    {
-
-        p_bullet[i].isActive = false;
-        
-    }
-
-
-    Texture2D pBulletTex = LoadTexture("resources/player/bullet.png");
+    //pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT] = {0};
     
-    float pBulletSpeed = 15;
+    //Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
+    // for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+    // {
+
+    //     p_bullet[i].isActive = false;
+        
+        
+    // }
+
+    pBullet p_bullet;
+    Texture2D pBulTex = LoadTexture("resources/player/bullet.png");
+    
+    float pBulletSpeed = 5;
     int pBulletCount;
     float pBulletLife;
     //bool isActive = false;
     int pBulletUnactiveCount;
     float shootCoolDownTimer = 0.5f;
-
+    
+    Vector2 pBulPos = {100, 100};
+    Rectangle pBulRect = { 0.0f, 0.0f, pBulTex.width, pBulTex.height};
     int pbulcount = 0;
 
     //sprite
@@ -205,47 +209,39 @@ int main(void)
 
         //shoot bullet
 
-        if(IsKeyDown(KEY_SPACE))
-        {
-            for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-            {
-                if(!p_bullet[i].isActive)
-                {
-                    p_bullet[i].pBulRect;
-                }
-            }
+        //if(IsKeyDown(KEY_SPACE))
+        //{
+            // for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+            // {
+            //     if(IsKeyDown(KEY_SPACE))
+            //     {
+            //         if(!p_bullet[i].isActive)
+            //         {
+                        
+            //             Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
+            //             p_bullet[i].pBulRect;
+            //         }
+            //     }
+                
+            // }
             
-            
-            p_bullet[pbulcount].isActive = true;
-            
-            pbulcount ++;
-        }
+        //}
+
+        //Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
 
         //update bullet
-        // if(p_bullet[pbulcount].isActive)
-        // {
-        //     p_bullet[pbulcount].pBulPos.y += pBulletSpeed;
-        // }
-        for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-        {
-            if(p_bullet[i].isActive)
-            {
-                p_bullet[i].pBulPos.y -= pBulletSpeed;
-                if(p_bullet[i].pBulPos.y < -30) p_bullet[i].isActive = false;
-            }
-        }
+
+        //for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+        //{
+            //if(p_bullet[i].isActive)
+            //{
+                //p_bullet[i].pBulPos.y -= pBulletSpeed;
+                //if(p_bullet[i].pBulPos.y < -30) p_bullet[i].isActive = false;
+            //}
+        //}
         
-
-        // //remove bullet when it goes past camera
-        // if(p_bullet[pbulcount].pBulPos.y <= -30)
-        // {
-        //     p_bullet[pbulcount].isActive = false;
-        //     pbulcount --;
-        // }
-
-        //move player bullets
+        pBulPos.y -= pBulletSpeed;
         
-
         ////DRAW
         BeginDrawing();
 
@@ -270,13 +266,16 @@ int main(void)
 
             ////draw player bullets
 
-            for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-            {
-                if(p_bullet[i].isActive = true)
-                {
-                    DrawTextureRec(p_bullet[i] .pBulTex, p_bullet[i].pBulRect, planePos, WHITE );
-                }
-            }
+            // for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+            // {
+            //     if(p_bullet[i].isActive == true)
+            //     {
+            //         DrawTextureRec(p_bullet[i] .pBulTex, p_bullet[i].pBulRect, planePos, WHITE );
+            //     }
+            // }
+
+            DrawTextureRec(pBulTex, pBulRect, pBulPos, WHITE );
+
                           
             //draw hud
             DrawTexture(hudBar, 0, screenHeight - hudBar.height, WHITE);
