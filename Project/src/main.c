@@ -38,10 +38,10 @@
     typedef struct pBullet 
     {
         Rectangle pBulRect;
-        int pBulletSpeed;
+        float pBulletSpeed;
         Texture2D pBulTex;
         Vector2 pBulPos;
-        bool active;
+        bool isActive;
     } pBullet;
 
 //------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ int main(void)
     TraceLog(LOG_INFO, "Bin directory: %s", app_dir);
     ChangeDirectory(app_dir);
 
-    ////PLAYER PLANE
+    ////PLAYER PLANE////
 
     //Player player (Texture2D planeTex, Vector2 planePos, Rectangle planeFrameRec, int playerSpeed,
     //        int frameSpeed, int currentFrame, int framesCounter);
@@ -78,13 +78,28 @@ int main(void)
     //movement speed
     int playerSpeed = 5;
 
-    ////PLAYER BULLETS
-    Texture2D pBullet = LoadTexture("resources/player/bullet.png");
+    ////PLAYER BULLETS////
+    //pBullet *p_bullets = (pBullet *)RL_CALLOC(PLAYER_BULLET_MAX_AMOUNT, sizeof(pBullet)); //p bullet array
+    pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT] = {0};
+    Rectangle pbulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
+    for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+    {
+
+        p_bullet[i].isActive = false;
+        
+    }
+
+
+    Texture2D pBulletTex = LoadTexture("resources/player/bullet.png");
+    
     float pBulletSpeed = 15;
     int pBulletCount;
     float pBulletLife;
-    bool active = false;
-    int enemySpeed = 2;
+    //bool isActive = false;
+    int pBulletUnactiveCount;
+    float shootCoolDownTimer = 0.5f;
+
+    int pbulcount = 0;
 
     //sprite
     Texture2D enemyTex1 = LoadTexture("resources/enemy/enemy1_strip3.png");
@@ -175,7 +190,7 @@ int main(void)
 
         ////init player
         // Player player (Texture2D planeTex, Vector2 planePos, Rectangle planeFrameRec, int playerSpeed,
-        //     int frameSpeed, int currentFrame, int framesCounter);
+        // int frameSpeed, int currentFrame, int framesCounter);
         Player player;
 
         ////move player
@@ -184,7 +199,52 @@ int main(void)
         if (IsKeyDown(KEY_UP) && planePos.y > 0) planePos.y -= playerSpeed;
         if (IsKeyDown(KEY_DOWN) && planePos.y < (screenHeight - hudBar.height) - planeTex.height) planePos.y += playerSpeed;
 
+        ////init player bullets
+        
+        
+
+        //shoot bullet
+
+        if(IsKeyDown(KEY_SPACE))
+        {
+            for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+            {
+                if(!p_bullet[i].isActive)
+                {
+                    p_bullet[i].pBulRect;
+                }
+            }
+            
+            
+            p_bullet[pbulcount].isActive = true;
+            
+            pbulcount ++;
+        }
+
+        //update bullet
+        // if(p_bullet[pbulcount].isActive)
+        // {
+        //     p_bullet[pbulcount].pBulPos.y += pBulletSpeed;
+        // }
+        for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+        {
+            if(p_bullet[i].isActive)
+            {
+                p_bullet[i].pBulPos.y -= pBulletSpeed;
+                if(p_bullet[i].pBulPos.y < -30) p_bullet[i].isActive = false;
+            }
+        }
+        
+
+        // //remove bullet when it goes past camera
+        // if(p_bullet[pbulcount].pBulPos.y <= -30)
+        // {
+        //     p_bullet[pbulcount].isActive = false;
+        //     pbulcount --;
+        // }
+
         //move player bullets
+        
 
         ////DRAW
         BeginDrawing();
@@ -201,10 +261,22 @@ int main(void)
                     //DrawTextureEx(seaTiles, (Vector2){ scrollingSpeed, 20 }, 0.0f, 2.0f, WHITE);
                 }
             }
+            
+            
 
             ////draw player
             //DrawTexture(planeTex, screenWidth/2 - planeTex.width/2, screenHeight/2 - planeTex.height/2, WHITE);
             DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
+
+            ////draw player bullets
+
+            for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+            {
+                if(p_bullet[i].isActive = true)
+                {
+                    DrawTextureRec(p_bullet[i] .pBulTex, p_bullet[i].pBulRect, planePos, WHITE );
+                }
+            }
                           
             //draw hud
             DrawTexture(hudBar, 0, screenHeight - hudBar.height, WHITE);
@@ -247,3 +319,7 @@ int main(void)
 //sea background /done
 //scrolling sea background
 //islands
+
+//////////////////////
+//by Antonio Ranieri//
+//////////////////////
