@@ -97,11 +97,11 @@ int main(void)
     float pBulletSpeed = 5;
     int pBulletCount;
     float pBulletLife;
-    //bool isActive = false;
+    bool isActive = false;
     int pBulletUnactiveCount;
     float shootCoolDownTimer = 0.5f;
     
-    Vector2 pBulPos = {100, 100};
+    Vector2 pBulPos = {-50, -50};
     Rectangle pBulRect = { 0.0f, 0.0f, pBulTex.width, pBulTex.height};
     int pbulcount = 0;
 
@@ -227,6 +227,14 @@ int main(void)
             
         //}
 
+        if(IsKeyDown(KEY_SPACE) && p_bullet.isActive == false)
+        {
+            p_bullet.isActive = true;
+            pBulPos.y = planePos.y;
+            pBulPos.x = planePos.x + (planeFrameRec.width/3);
+        }
+        
+
         //Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
 
         //update bullet
@@ -241,6 +249,8 @@ int main(void)
         //}
         
         pBulPos.y -= pBulletSpeed;
+
+        if(pBulPos.y < -30) p_bullet.isActive = false;
         
         ////DRAW
         BeginDrawing();
