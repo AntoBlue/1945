@@ -237,8 +237,6 @@ int main(void)
         //scrollingSpeed = 20.0f;
 
         ////init player
-        // Player player (Texture2D planeTex, Vector2 planePos, Rectangle planeFrameRec, int playerSpeed,
-        // int frameSpeed, int currentFrame, int framesCounter);
         Player player;
 
         ////move player
@@ -252,26 +250,6 @@ int main(void)
         
 
         //shoot bullet
-
-        //if(IsKeyDown(KEY_SPACE))
-        //{
-            // for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-            // {
-            //     if(IsKeyDown(KEY_SPACE))
-            //     {
-            //         if(!p_bullet[i].isActive)
-            //         {
-                        
-            //             Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
-            //             p_bullet[i].pBulRect;
-            //         }
-            //     }
-                
-            // }
-            
-        //}
-
-         //needed to shoot in bursts of 3 bullets
         
         for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
         {
@@ -321,34 +299,17 @@ int main(void)
             
             
 
+            //draw player bullets
             
             for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
             {
                 DrawTextureRec(pBulTex, p_bullet[i].pBulRect, p_bullet[i].pBulPos, WHITE );
             }
-            // DrawTextureRec(pBulTex, p_bullet[0].pBulRect, p_bullet[0].pBulPos, WHITE );
-            // DrawTextureRec(pBulTex, p_bullet[1].pBulRect, p_bullet[1].pBulPos, WHITE );
-            // DrawTextureRec(pBulTex, p_bullet[2].pBulRect, p_bullet[2].pBulPos, WHITE );
-            // DrawTextureRec(pBulTex, p_bullet[3].pBulRect, p_bullet[3].pBulPos, WHITE );
-            // DrawTextureRec(pBulTex, p_bullet[4].pBulRect, p_bullet[4].pBulPos, WHITE );
-
-
 
             ////draw player
-            //DrawTexture(planeTex, screenWidth/2 - planeTex.width/2, screenHeight/2 - planeTex.height/2, WHITE);
+            
             DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
 
-            ////draw player bullets
-
-            // for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-            // {
-            //     if(p_bullet[i].isActive == true)
-            //     {
-            //         DrawTextureRec(p_bullet[i] .pBulTex, p_bullet[i].pBulRect, planePos, WHITE );
-            //     }
-            // }
-
-            
 
                           
             //draw hud
