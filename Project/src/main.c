@@ -5,8 +5,8 @@
 
 #define MAP_TILE_SIZE 32 //specify tile size 
 #define BULLET_LIFETIME 3 //bullet are deleted after this amount of time
-#define PLAYER_BULLET_MAX_AMOUNT 30 //max amount of bullets on screen
-#define MAX_ENEMIES 5 //max enemies on screen
+//#define PLAYER_BULLET_MAX_AMOUNT 30 //max amount of bullets on screen
+//#define MAX_ENEMIES 5 //max enemies on screen
 
 //------------------------------------------------------------------------------------
 // Define the game map
@@ -15,7 +15,6 @@
     {
         unsigned int tilesX;             
         unsigned int tilesY;            
-        unsigned char *tileIds;         // Tile ids (tilesX*tilesY), defines type of tile to draw
     } Map;
 
 //------------------------------------------------------------------------------------
@@ -38,11 +37,26 @@
     typedef struct pBullet 
     {
         Rectangle pBulRect;
-        float pBulletSpeed;
+        //float pBulletSpeed;
         Texture2D pBulTex;
         Vector2 pBulPos;
         bool isActive;
     } pBullet;
+
+//------------------------------------------------------------------------------------
+// Define Player
+//------------------------------------------------------------------------------------
+    typedef struct Player 
+    {
+        Texture2D ePlaneTex;
+        Vector2 ePlanePos;
+        Rectangle ePlaneFrameRec;
+        int enemySpeed;
+        int framesSpeed; //how many frames per second?
+        int currentFrame;
+        int framesCounter;
+    } Player;
+
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -81,35 +95,38 @@ int main(void)
     ////PLAYER BULLETS////
     //pBullet *p_bullets = (pBullet *)RL_CALLOC(PLAYER_BULLET_MAX_AMOUNT, sizeof(pBullet)); //p bullet array
     //pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT] = {0};
-    
-    //Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
-    // for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
-    // {
 
-    //     p_bullet[i].isActive = false;
-        
-        
-    // }
-
-    pBullet p_bullet;
     Texture2D pBulTex = LoadTexture("resources/player/bullet.png");
+
+    pBullet p_bullet[5];
     
-    float pBulletSpeed = 5;
+    float pBulletSpeed = 7;
     int pBulletCount;
     float pBulletLife;
     bool isActive = false;
     int pBulletUnactiveCount;
-    float shootCoolDownTimer = 0.5f;
+    int shootCoolDownTimer = 60;
+    int shootId;
     
     Vector2 pBulPos = {-50, -50};
     Rectangle pBulRect = { 0.0f, 0.0f, pBulTex.width, pBulTex.height};
     int pbulcount = 0;
 
+    //automated array does not seem to work
+    p_bullet[0].pBulPos = pBulPos;
+    p_bullet[0].pBulRect = pBulRect;
+    p_bullet[1].pBulPos = pBulPos;
+    p_bullet[1].pBulRect = pBulRect;
+    p_bullet[2].pBulPos = pBulPos;
+    p_bullet[2].pBulRect = pBulRect;
+    p_bullet[3].pBulPos = pBulPos;
+    p_bullet[3].pBulRect = pBulRect;
+    p_bullet[4].pBulPos = pBulPos;
+    p_bullet[4].pBulRect = pBulRect;
+
     //sprite
     Texture2D enemyTex1 = LoadTexture("resources/enemy/enemy1_strip3.png");
-    Texture2D enemyTex2 = LoadTexture("resources/enemy/enemy2_strip3.png");
     Texture2D enemyTex3 = LoadTexture("resources/enemy/enemy3_strip3.png");
-    Texture2D enemyTex = LoadTexture("resources/enemy/enemy1_strip3.png");
 
     //sprite anim frames
     int eCurrentFrame;
@@ -152,6 +169,7 @@ int main(void)
     {
 
         framesCounter++;
+        shootCoolDownTimer ++;
 
         if (framesCounter >= (60/framesSpeed))
         {
@@ -163,6 +181,8 @@ int main(void)
             planeFrameRec.x = (float)currentFrame*(float)planeTex.width/3;
             //enemyFrameRec.x = (float)currentFrame*(float)enemyTex.width/3;
         }
+
+        
 
         float delta_time = GetFrameTime();
         int fps = GetFPS();
@@ -227,13 +247,59 @@ int main(void)
             
         //}
 
-        if(IsKeyDown(KEY_SPACE) && p_bullet.isActive == false)
+        if(IsKeyDown(KEY_SPACE) && shootCoolDownTimer > 13)
         {
-            p_bullet.isActive = true;
-            pBulPos.y = planePos.y;
-            pBulPos.x = planePos.x + (planeFrameRec.width/3);
+
+            printf("shooting ");
+
+            if(p_bullet[4].isActive && p_bullet[3].isActive && p_bullet[2].isActive && p_bullet[0].isActive && p_bullet[1].isActive)
+            {
+                p_bullet[4].pBulPos.y = planePos.y;
+                p_bullet[4].pBulPos.x = planePos.x + (planeFrameRec.width/3);
+                p_bullet[4].isActive = true;
+                printf("bullet5 ");
+                //shootCoolDownTimer = 0;
+            }
+
+            if(p_bullet[3].isActive == false && p_bullet[2].isActive && p_bullet[0].isActive && p_bullet[1].isActive)
+            {
+                p_bullet[3].pBulPos.y = planePos.y;
+                p_bullet[3].pBulPos.x = planePos.x + (planeFrameRec.width/3);
+                p_bullet[3].isActive = true;
+                printf("bullet4 ");
+                //shootCoolDownTimer = 0;
+            }
+
+            if(p_bullet[2].isActive == false && p_bullet[0].isActive && p_bullet[1].isActive)
+            {
+                p_bullet[2].pBulPos.y = planePos.y;
+                p_bullet[2].pBulPos.x = planePos.x + (planeFrameRec.width/3);
+                p_bullet[2].isActive = true;
+                printf("bullet3 ");
+                //shootCoolDownTimer = 0;
+            }
+
+            else if(p_bullet[1].isActive == false && p_bullet[0].isActive)
+            {
+                p_bullet[1].pBulPos.y = planePos.y;
+                p_bullet[1].pBulPos.x = planePos.x + (planeFrameRec.width/3);
+                p_bullet[1].isActive = true;
+                printf("bullet2 ");
+                //shootCoolDownTimer = 0;
+            }
+
+            else if(p_bullet[0].isActive == false)
+            {
+                p_bullet[0].pBulPos.y = planePos.y;
+                p_bullet[0].pBulPos.x = planePos.x + (planeFrameRec.width/3);
+                p_bullet[0].isActive = true;
+                printf("bullet1 ");
+                //shootCoolDownTimer = 0;
+            }
+
+            shootCoolDownTimer = 0;     
+            
         }
-        
 
         //Rectangle pBulRect = { player.planeFrameRec.x, player.planeFrameRec.width/3, player.planeFrameRec.y, 5.0f};
 
@@ -248,9 +314,17 @@ int main(void)
             //}
         //}
         
-        pBulPos.y -= pBulletSpeed;
+        p_bullet[0].pBulPos.y -= pBulletSpeed;
+        p_bullet[1].pBulPos.y -= pBulletSpeed;
+        p_bullet[2].pBulPos.y -= pBulletSpeed;
+        p_bullet[3].pBulPos.y -= pBulletSpeed;
+        p_bullet[4].pBulPos.y -= pBulletSpeed;
 
-        if(pBulPos.y < -30) p_bullet.isActive = false;
+        if(p_bullet[0].pBulPos.y < -30) p_bullet[0].isActive = false;
+        if(p_bullet[1].pBulPos.y < -30) p_bullet[1].isActive = false;
+        if(p_bullet[2].pBulPos.y < -30) p_bullet[2].isActive = false;
+        if(p_bullet[3].pBulPos.y < -30) p_bullet[3].isActive = false;
+        if(p_bullet[4].pBulPos.y < -30) p_bullet[4].isActive = false;
         
         ////DRAW
         BeginDrawing();
@@ -270,6 +344,15 @@ int main(void)
             
             
 
+            
+            DrawTextureRec(pBulTex, p_bullet[0].pBulRect, p_bullet[0].pBulPos, WHITE );
+            DrawTextureRec(pBulTex, p_bullet[1].pBulRect, p_bullet[1].pBulPos, WHITE );
+            DrawTextureRec(pBulTex, p_bullet[2].pBulRect, p_bullet[2].pBulPos, WHITE );
+            DrawTextureRec(pBulTex, p_bullet[3].pBulRect, p_bullet[3].pBulPos, WHITE );
+            DrawTextureRec(pBulTex, p_bullet[4].pBulRect, p_bullet[4].pBulPos, WHITE );
+
+
+
             ////draw player
             //DrawTexture(planeTex, screenWidth/2 - planeTex.width/2, screenHeight/2 - planeTex.height/2, WHITE);
             DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
@@ -284,7 +367,7 @@ int main(void)
             //     }
             // }
 
-            DrawTextureRec(pBulTex, pBulRect, pBulPos, WHITE );
+            
 
                           
             //draw hud
