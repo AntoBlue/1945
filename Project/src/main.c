@@ -5,8 +5,9 @@
 
 #define MAP_TILE_SIZE 32 //specify tile size 
 #define BULLET_LIFETIME 3 //bullet are deleted after this amount of time
-#define PLAYER_BULLET_MAX_AMOUNT 60 //max amount of bullets on screen
-//#define MAX_ENEMIES 5 //max enemies on screen
+#define MAX_PLAYER_BULLETS 60 //max amount of bullets on screen
+#define MAX_ENEMIES 10 //max enemies on screen
+#define MAX_ENEMY_BULLETS 10 // max enemy bullets on screen
 
 //------------------------------------------------------------------------------------
 // Define the game map
@@ -57,6 +58,17 @@
         int enemyframesCounter;
     } Enemy;
 
+    
+//------------------------------------------------------------------------------------
+// Define Enemy Bullets
+//------------------------------------------------------------------------------------
+    typedef struct EnemyBullet 
+    {
+        Texture2D enemyBulletTex;
+        Vector2 enemyBulletPos;
+        Rectangle enemyBulletFrameRec;
+        int enemyBulletSpeed;
+    } EnemyBullet;
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -93,17 +105,17 @@ int main(void)
     int playerSpeed = 5;
 
     ////PLAYER BULLETS////
-    //pBullet *p_bullets = (pBullet *)RL_CALLOC(PLAYER_BULLET_MAX_AMOUNT, sizeof(pBullet)); //p bullet array
-    //pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT] = {0};
+    //pBullet *p_bullets = (pBullet *)RL_CALLOC(MAX_PLAYER_BULLETS, sizeof(pBullet)); //p bullet array
+    //pBullet p_bullet[MAX_PLAYER_BULLETS] = {0};
 
     //sprite
     Texture2D pBulTex = LoadTexture("resources/player/bullet.png");
 
     //init
-    pBullet p_bullet[PLAYER_BULLET_MAX_AMOUNT];
+    pBullet p_bullet[MAX_PLAYER_BULLETS];
     
     //attributes
-    float pBulletSpeed = 9;
+    float pBulletSpeed = 7;
     int pBulletCount;
     float pBulletLife;
     bool isActive = false;
@@ -117,7 +129,7 @@ int main(void)
     int bulletSideId = 0;
 
     //bullet array
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < MAX_PLAYER_BULLETS; i++)
     {
         p_bullet[i].pBulRect = pBulRect;
         p_bullet[i].pBulPos = pBulPos;
@@ -127,16 +139,12 @@ int main(void)
 
 
     //sprite
-    Texture2D enemyTex1 = LoadTexture("resources/enemy/enemy1_strip3.png");
-    Texture2D enemyTex2 = LoadTexture("resources/enemy/enemy3_strip3.png");
+    Texture2D enemyTex = LoadTexture("resources/enemy/enemy1_strip3.png");
 
     //init enemies
 
-    Enemy enemy[6];
-
     float enemySpeed = 3;
-    Rectangle enemyFrameRec = { 0.0f, 0.0f, (float)enemyTex1.width/3, (float)enemyTex1.height };
-
+    Rectangle enemyFrameRec = { 0.0f, 0.0f, (float)enemyTex.width/3, (float)enemyTex.height };
 
     //sprite anim frames
     int enemyCurrentFrame;
@@ -145,18 +153,15 @@ int main(void)
 
     //enemy array
 
-    enemy[0].enemyFrameRec = enemyFrameRec;
-    enemy[0].enemyTex = enemyTex1;
-    enemy[1].enemyFrameRec = enemyFrameRec;
-    enemy[1].enemyTex = enemyTex2;
-    enemy[2].enemyFrameRec = enemyFrameRec;
-    enemy[2].enemyTex = enemyTex1;
-    enemy[3].enemyFrameRec = enemyFrameRec;
-    enemy[3].enemyTex = enemyTex2;
-    enemy[4].enemyFrameRec = enemyFrameRec;
-    enemy[4].enemyTex = enemyTex1;
-    enemy[5].enemyFrameRec = enemyFrameRec;
-    enemy[5].enemyTex = enemyTex2;
+    Enemy enemy[MAX_ENEMIES];
+
+    for (int i = 0; i < MAX_ENEMIES; i++)
+    {
+        enemy[i].enemyFrameRec = enemyFrameRec;
+        enemy[i].enemyPos.x = (float)(GetRandomValue(0, screenWidth - 30));
+        enemy[i].enemyPos.y = (float)(GetRandomValue(-1000, -30));
+    }
+
 
 
     ////HUD
@@ -199,11 +204,14 @@ int main(void)
         {
             framesCounter = 0;
             currentFrame++;
+            enemyCurrentFrame++;
 
             if (currentFrame > 5) currentFrame = 0;
+            if (enemyCurrentFrame > 5) enemyCurrentFrame = 0;
+
 
             planeFrameRec.x = (float)currentFrame*(float)planeTex.width/3;
-            //enemyFrameRec.x = (float)currentFrame*(float)enemyTex.width/3;
+            enemyFrameRec.x = (float)enemyCurrentFrame*(float)enemyTex.width/3;
         }
 
         
@@ -251,9 +259,9 @@ int main(void)
 
         //shoot bullet
         
-        for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+        for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
         {
-            if(IsKeyDown(KEY_SPACE) && shootCoolDownTimer > 10 && p_bullet[i].isActive == false)
+            if(IsKeyDown(KEY_SPACE) && shootCoolDownTimer > 5 && p_bullet[i].isActive == false)
             {
                         
                 p_bullet[i].pBulPos.y = planePos.y;
@@ -268,7 +276,7 @@ int main(void)
 
         //update bullet
         
-        for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT;  i++)
+        for(int i = 0; i < MAX_PLAYER_BULLETS;  i++)
         {
             if (p_bullet[i].isActive)
             {
@@ -276,9 +284,26 @@ int main(void)
             }
         }
 
-        for(int i = 0; i < PLAYER_BULLET_MAX_AMOUNT;  i++)
+        for(int i = 0; i < MAX_PLAYER_BULLETS;  i++)
         {
             if(p_bullet[i].pBulPos.y < -30) p_bullet[i].isActive = false;
+        }
+
+        //update enemies
+
+        for (int i = 0; i < MAX_ENEMIES; i++)
+        {
+            enemy[i].enemyPos.y += enemySpeed;
+        }
+
+        //(re)spawn enemies
+        for (int i = 0; i < MAX_ENEMIES; i++)
+        {
+            if(enemy[i].enemyPos.y > screenHeight + 30)
+            {
+                enemy[i].enemyPos.x = (float)(GetRandomValue(0, screenWidth - 30)); 
+                enemy[i].enemyPos.y = (float)(GetRandomValue(-1000, -30));
+            }
         }
         
         ////DRAW
@@ -297,11 +322,15 @@ int main(void)
                 }
             }
             
-            
+            ////draw enemies
+            for (int i = 0; i < MAX_ENEMIES; i++)
+            {
+                DrawTextureRec(enemyTex, enemy[i].enemyFrameRec, enemy[i].enemyPos, WHITE);
+            }
 
-            //draw player bullets
+            ////draw player bullets
             
-            for (int i = 0; i < PLAYER_BULLET_MAX_AMOUNT; i++)
+            for (int i = 0; i < MAX_PLAYER_BULLETS; i++)
             {
                 DrawTextureRec(pBulTex, p_bullet[i].pBulRect, p_bullet[i].pBulPos, WHITE );
             }
@@ -340,15 +369,15 @@ int main(void)
 //player sprite /done
 //player movement with input /done
 //player movement bounds /done
-//player shoot
+//player shoot /done
 //animated player sprite /done
 //player hurt
 //hud bar /done
 //hud life count 
 //hud energy
 //hud score /done
-//enemy spawn
-//enemy movement
+//enemy spawn /done
+//enemy movement /done
 //enemy shoot
 //sea background /done
 //scrolling sea background
