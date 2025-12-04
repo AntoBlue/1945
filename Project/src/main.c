@@ -7,7 +7,7 @@
 #define BULLET_LIFETIME 3 //bullet are deleted after this amount of time
 #define MAX_PLAYER_BULLETS 10 //max amount of bullets on screen
 #define MAX_ENEMIES 10 //max enemies on screen
-#define MAX_ENEMY_BULLETS 20 // max enemy bullets on screen
+#define MAX_ENEMY_BULLETS 10 // max enemy bullets on screen
 
 //------------------------------------------------------------------------------------
 // Define the game map
@@ -58,6 +58,7 @@
         int framesSpeed; //how many frames per second?
         int enemyCurrentFrame;
         int enemyframesCounter;
+        bool shootAvaible;
     } Enemy;
 
     
@@ -70,7 +71,7 @@
         Vector2 enemyBulletPos;
         Rectangle enemyBulletFrameRec;
         Rectangle collider;
-        int enemyBulletSpeed;
+        bool isActive;
     } EnemyBullet;
 
 //------------------------------------------------------------------------------------
@@ -108,8 +109,6 @@ int main(void)
     int playerSpeed = 5;
 
     ////PLAYER BULLETS////
-    //pBullet *p_bullets = (pBullet *)RL_CALLOC(MAX_PLAYER_BULLETS, sizeof(pBullet)); //p bullet array
-    //pBullet p_bullet[MAX_PLAYER_BULLETS] = {0};
 
     //sprite
     Texture2D pBulTex = LoadTexture("resources/player/bullet.png");
@@ -119,17 +118,13 @@ int main(void)
     
     //attributes
     float pBulletSpeed = 7;
-    int pBulletCount;
-    float pBulletLife;
-    bool isActive = false;
-    int pBulletUnactiveCount;
     int shootCoolDownTimer = 60;
-    int shootId;
     
     Vector2 pBulPos = {-50, -50};
     Rectangle pBulRect = { 0.0f, 0.0f, (float)pBulTex.width, (float)pBulTex.height};
     int pbulcount = 0;
     int bulletSideId = 0;
+    
 
     //bullet array
     for (int i = 0; i < MAX_PLAYER_BULLETS; i++)
@@ -149,7 +144,8 @@ int main(void)
 
     float enemySpeed = 3;
     Rectangle enemyFrameRec = { 0.0f, 0.0f, (float)enemyTex.width/3, (float)enemyTex.height };
-
+    bool shootAvaible = true;
+    
     //sprite anim frames
     int enemyCurrentFrame;
     int enemyFramesCounter;
@@ -165,7 +161,32 @@ int main(void)
         enemy[i].enemyPos.x = (float)(GetRandomValue(0, screenWidth - 30));
         enemy[i].enemyPos.y = (float)(GetRandomValue(-1000, -30));
         enemy[i].collider = enemyFrameRec;
+        enemy[i].shootAvaible = true;
     }
+
+    ////ENEMY BULLETS////
+
+    EnemyBullet e_bullet[MAX_ENEMY_BULLETS];
+    
+    Vector2 enemyBulletPos = {screenHeight + 50, 0};
+
+    //sprite
+    Texture2D enemyBulletTex = LoadTexture("resources/enemy/enemybullet1.png");
+    Rectangle enemyBulRec = { 0.0f, 0.0f, (float)enemyBulletTex.width, (float)enemyBulletTex.height };
+    enemyBulletPos.y = screenHeight + 30;
+
+    //enemy bullet array
+    for (int i = 0; i < MAX_ENEMY_BULLETS; i++)
+    {
+        e_bullet[i].enemyBulletFrameRec = enemyBulRec;
+        e_bullet[i].enemyBulletPos = enemyBulletPos;
+        e_bullet[i].collider = enemyBulRec;
+        //e_bullet[i].isActive = false;
+    }
+
+    //attributes
+    float enemyBulletSpeed = 5;
+    int enemyShootTimer = 0;
 
 
 
@@ -208,6 +229,7 @@ int main(void)
 
         framesCounter++;
         shootCoolDownTimer ++;
+        enemyShootTimer ++;
 
         if (framesCounter >= (60/framesSpeed))
         {
@@ -323,6 +345,52 @@ int main(void)
             }
         }
 
+        ////enemy bullets
+
+        //update enemy bullet
+        for(int i = 0; i < MAX_ENEMY_BULLETS;  i++)
+        {
+            if (e_bullet[i].isActive)
+            {
+                e_bullet[i].enemyBulletPos.y += enemyBulletSpeed;
+                e_bullet[i].collider.y = e_bullet[i].enemyBulletPos.y;
+                e_bullet[i].collider.x = e_bullet[i].enemyBulletPos.x;
+            }
+        }
+
+        for(int i = 0; i < MAX_ENEMY_BULLETS;  i++)
+        {
+            if(e_bullet[i].enemyBulletPos.y < 0 || e_bullet[i].enemyBulletPos.y > screenHeight) 
+            {
+                e_bullet[i].isActive = false;
+                //e_bullet[i].collider.y = screenHeight + 900;
+            }
+        }
+
+        //enemy shoots bullets
+        
+        for(int i = 0; i < MAX_ENEMIES; i++)
+        {
+            for(int j = 0; j < MAX_ENEMY_BULLETS; j++)
+            {
+                if(e_bullet[j].isActive == false && enemyShootTimer > 10 && enemy[i].shootAvaible)
+                {
+                    e_bullet[j].isActive = true;
+                    e_bullet[j].enemyBulletPos.x = enemy[i].enemyPos.x + (float)enemy[i].enemyFrameRec.width/3;
+                    e_bullet[j].enemyBulletPos.y = enemy[i].enemyPos.y;
+
+                    enemyShootTimer = 0;
+                    enemy[i].shootAvaible = false;    //needed to make bullets come out of 
+                    enemy[i - 1].shootAvaible = true; //different planes (otherwise only one plane can fire)
+                }
+                //enemyShootTimer = GetRandomValue(3, 30);
+                
+                //WaitTime(5);
+
+            }
+        }
+        
+
         ////collision checks
         
         //bool playerBulletCollision = CheckCollisionRecs(enemyFrameRec, pBulRect);
@@ -375,6 +443,17 @@ int main(void)
                 {
                     DrawTextureRec(pBulTex, p_bullet[i].pBulRect, p_bullet[i].pBulPos, WHITE );
                     DrawRectangleLinesEx(p_bullet[i].collider, 3, GREEN);
+                }
+            }
+
+            //draw enemy bullets
+
+            for (int i = 0; i < MAX_ENEMY_BULLETS; i++)
+            {
+                if(e_bullet[i].isActive)
+                {
+                    DrawTextureRec(enemyBulletTex, e_bullet[i].enemyBulletFrameRec, e_bullet[i].enemyBulletPos, WHITE );
+                    DrawRectangleLinesEx(e_bullet[i].collider, 3, RED);
                 }
             }
 
