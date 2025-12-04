@@ -26,6 +26,7 @@
         Texture2D planeTex;
         Vector2 planePos;
         Rectangle planeFrameRec;
+        Rectangle pCollider;
         int playerSpeed;
         int framesSpeed; //how many frames per second?
         int currentFrame;
@@ -99,6 +100,8 @@ int main(void)
     Texture2D planeTex = LoadTexture("resources/player/myplane_strip3.png");
     Rectangle planeFrameRec = { 0.0f, 0.0f, (float)planeTex.width/3, (float)planeTex.height };
     Vector2 planePos = {screenWidth/2 - planeFrameRec.width/2, screenHeight/2 - planeFrameRec.height/2};
+    Rectangle pCollider = { planePos.x, planePos.y, (float)planeTex.width/3, (float)planeTex.height };
+
 
     //sprite anim frames
     int currentFrame;
@@ -211,6 +214,9 @@ int main(void)
     //scroll
     float scrollingSpeed = 10;
 
+    ////debug hitbox
+    bool draw = false;
+
     //Font my_font = LoadFont("....ttf");
 
     InitAudioDevice();
@@ -283,7 +289,7 @@ int main(void)
         if (IsKeyDown(KEY_LEFT) && planePos.x > 0) planePos.x -= playerSpeed;
         if (IsKeyDown(KEY_UP) && planePos.y > 0) planePos.y -= playerSpeed;
         if (IsKeyDown(KEY_DOWN) && planePos.y < (screenHeight - hudBar.height) - planeTex.height) planePos.y += playerSpeed;
-
+        pCollider.x = planePos.x; pCollider.y = planePos.y;
         ////init player bullets
         
         
@@ -373,16 +379,19 @@ int main(void)
         {
             for(int j = 0; j < MAX_ENEMY_BULLETS; j++)
             {
-                if(e_bullet[j].isActive == false && enemyShootTimer > 10 && enemy[i].shootAvaible)
+                if(e_bullet[j].isActive == false && enemyShootTimer > 15 && enemy[i].shootAvaible && enemy[i].enemyPos.y > 0 && enemy[i].enemyPos.y < screenHeight)
                 {
                     e_bullet[j].isActive = true;
                     e_bullet[j].enemyBulletPos.x = enemy[i].enemyPos.x + (float)enemy[i].enemyFrameRec.width/3;
                     e_bullet[j].enemyBulletPos.y = enemy[i].enemyPos.y;
 
+                    enemy[i].shootAvaible = false;
                     enemyShootTimer = 0;
-                    enemy[i].shootAvaible = false;    //needed to make bullets come out of 
-                    enemy[i - 1].shootAvaible = true; //different planes (otherwise only one plane can fire)
+                        //needed to make bullets come out of ; //different planes (otherwise only one plane can fire)
+                    //sleep_ms(90);
+                    //enemy[i].shootAvaible = true;
                 }
+
                 //enemyShootTimer = GetRandomValue(3, 30);
                 
                 //WaitTime(5);
@@ -390,6 +399,11 @@ int main(void)
             }
         }
         
+        //needed to make bullets come out of different planes (otherwise only one plane can fire)
+        for(int i = 0; i < MAX_ENEMIES; i++)
+        {
+            if(enemy[i].enemyPos.y > 0 && enemy[i].enemyPos.y < 5) enemy[i].shootAvaible = true;
+        }
 
         ////collision checks
         
@@ -412,6 +426,13 @@ int main(void)
             }
         }
 
+        ////enable debug hitbox
+        if(IsKeyPressed(KEY_Z))
+        {
+            if(draw == false) draw = true;
+            else draw = false;
+        }
+        
         ////DRAW
         BeginDrawing();
 
@@ -427,13 +448,6 @@ int main(void)
                     //DrawTextureEx(seaTiles, (Vector2){ scrollingSpeed, 20 }, 0.0f, 2.0f, WHITE);
                 }
             }
-            
-            ////draw enemies
-            for (int i = 0; i < MAX_ENEMIES; i++)
-            {
-                DrawTextureRec(enemyTex, enemy[i].enemyFrameRec, enemy[i].enemyPos, WHITE);
-                DrawRectangleLinesEx(enemy[i].collider, 3, RED);
-            }
 
             ////draw player bullets
             
@@ -442,7 +456,7 @@ int main(void)
                 if(p_bullet[i].isActive)
                 {
                     DrawTextureRec(pBulTex, p_bullet[i].pBulRect, p_bullet[i].pBulPos, WHITE );
-                    DrawRectangleLinesEx(p_bullet[i].collider, 3, GREEN);
+                    if(draw == true) DrawRectangleLinesEx(p_bullet[i].collider, 3, GREEN);
                 }
             }
 
@@ -453,13 +467,21 @@ int main(void)
                 if(e_bullet[i].isActive)
                 {
                     DrawTextureRec(enemyBulletTex, e_bullet[i].enemyBulletFrameRec, e_bullet[i].enemyBulletPos, WHITE );
-                    DrawRectangleLinesEx(e_bullet[i].collider, 3, RED);
+                    if(draw == true) DrawRectangleLinesEx(e_bullet[i].collider, 3, RED);
                 }
+            }
+            
+            ////draw enemies
+            for (int i = 0; i < MAX_ENEMIES; i++)
+            {
+                DrawTextureRec(enemyTex, enemy[i].enemyFrameRec, enemy[i].enemyPos, WHITE);
+                if(draw == true) DrawRectangleLinesEx(enemy[i].collider, 3, RED);
             }
 
             ////draw player
             
             DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
+            if(draw == true) DrawRectangleLinesEx(pCollider, 3, GREEN);
 
 
                           
