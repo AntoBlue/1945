@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #define MAP_TILE_SIZE 32 //specify tile size 
+#define MAX_ISLANDS 6 //max background islands on screen
 #define BULLET_LIFETIME 3 //bullet are deleted after this amount of time
 #define MAX_PLAYER_BULLETS 10 //max amount of bullets on screen
 #define MAX_ENEMIES 10 //max enemies on screen
@@ -15,8 +16,18 @@
     typedef struct Map 
     {
         unsigned int tilesX;             
-        unsigned int tilesY;            
+        unsigned int tilesY;          
     } Map;
+
+//------------------------------------------------------------------------------------
+// Define map islands
+//------------------------------------------------------------------------------------
+    typedef struct Island
+    {
+        Texture2D islandTex;
+        Vector2 islandPos;         
+    } Island;
+
 
 //------------------------------------------------------------------------------------
 // Define Player
@@ -31,6 +42,7 @@
         int framesSpeed; //how many frames per second?
         int currentFrame;
         int framesCounter;
+        bool playerActive;
     } Player;
 
 //------------------------------------------------------------------------------------
@@ -95,11 +107,20 @@ int main(void)
     //Player player (Texture2D planeTex, Vector2 planePos, Rectangle planeFrameRec, int playerSpeed,
     //        int frameSpeed, int currentFrame, int framesCounter);
     Player player;
+    bool playerActive = true;
+    int deadTimer = 0;
+
+    //life icons
+    int stocks = 3;
+    Texture2D stockIcon = LoadTexture("resources/ui/life.png");
+    //Rectangle stockIconRec = { 0.0f, 0.0f, (float)(stockIcon.width*stocks), (float)stockIcon.height };
+    Vector2 stockPos = {12, screenHeight - 70};
 
     //sprite
     Texture2D planeTex = LoadTexture("resources/player/myplane_strip3.png");
     Rectangle planeFrameRec = { 0.0f, 0.0f, (float)planeTex.width/3, (float)planeTex.height };
     Vector2 planePos = {screenWidth/2 - planeFrameRec.width/2, screenHeight/2 - planeFrameRec.height/2};
+    Vector2 initialPlanePos = {screenWidth/2 - planeFrameRec.width/2, screenHeight/2 - planeFrameRec.height/2};
     Rectangle pCollider = { planePos.x, planePos.y, (float)planeTex.width/3, (float)planeTex.height };
 
 
@@ -198,7 +219,7 @@ int main(void)
     Texture2D hudBar = LoadTexture("resources/ui/bottom.png");
 
     //hud info
-    int score;
+    int score = 0;
     float life = 100;
     Rectangle lifeBar = {0, 0, life, 50};
 
@@ -211,8 +232,20 @@ int main(void)
     //sea tiles
     Texture seaTiles = LoadTexture("resources/map/water.png");
 
+    //islands
+    Island island[MAX_ISLANDS];
+    Texture2D islandTex = LoadTexture("resources/map/island1.png");
+    Vector2 islandPos = {900, 900};
+
+    for (int i = 0; i < MAX_ISLANDS; i++)
+    {
+        island[i].islandPos = islandPos;
+        island[i].islandTex = islandTex;
+    }
+
     //scroll
-    float scrollingSpeed = 10;
+    float scrollingSpeed = 1;
+
 
     ////debug hitbox
     bool draw = false;
@@ -236,6 +269,7 @@ int main(void)
         framesCounter++;
         shootCoolDownTimer ++;
         enemyShootTimer ++;
+        deadTimer++;
 
         if (framesCounter >= (60/framesSpeed))
         {
@@ -279,6 +313,8 @@ int main(void)
         // PauseMusicStream(music);
         // ResumeMusicStream(music);
 
+        Rectangle stockIconRec = { 0.0f, 0.0f, (float)(stockIcon.width * stocks), (float)stockIcon.height };
+
         //scrollingSpeed = 20.0f;
 
         ////init player
@@ -298,7 +334,7 @@ int main(void)
         
         for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
         {
-            if(IsKeyDown(KEY_SPACE) && shootCoolDownTimer > 5 && p_bullet[i].isActive == false)
+            if(IsKeyDown(KEY_SPACE) && shootCoolDownTimer > 5 && p_bullet[i].isActive == false && playerActive == true)
             {
                         
                 p_bullet[i].pBulPos.y = planePos.y;
@@ -385,7 +421,7 @@ int main(void)
                     e_bullet[j].enemyBulletPos.x = enemy[i].enemyPos.x + (float)enemy[i].enemyFrameRec.width/3;
                     e_bullet[j].enemyBulletPos.y = enemy[i].enemyPos.y;
 
-                    enemy[i].shootAvaible = false;
+                    enemy[i].shootAvaible = false; //needed to make bullets come out of different planes (otherwise only one plane can fire)
                     enemyShootTimer = 0;
                         //needed to make bullets come out of ; //different planes (otherwise only one plane can fire)
                     //sleep_ms(90);
@@ -399,7 +435,7 @@ int main(void)
             }
         }
         
-        //needed to make bullets come out of different planes (otherwise only one plane can fire)
+        //ensures the game doesn't run out of valid enemy shooters for the enemy bullets
         for(int i = 0; i < MAX_ENEMIES; i++)
         {
             if(enemy[i].enemyPos.y > 0 && enemy[i].enemyPos.y < 5) enemy[i].shootAvaible = true;
@@ -426,6 +462,75 @@ int main(void)
             }
         }
 
+        for(int i = 0; i < MAX_ENEMY_BULLETS; i++)
+        {
+            if(CheckCollisionRecs(pCollider, e_bullet[i].collider) && playerActive == true) 
+            {
+                e_bullet[i].isActive = false;
+                e_bullet[i].enemyBulletPos.y = screenHeight;
+                e_bullet[i].collider.y = screenHeight;
+                life -= 25;
+            }
+        }
+
+        ////kill player
+        if (life < 0) life = 0;
+
+        //die when life reach 0
+        if(life == 0)
+        {
+            playerActive = false;
+            deadTimer = 0;
+            life += 0.1f; //otherwise respawn is blocked
+            stocks--;
+            //playerActive = true;
+            //planePos = initialPlanePos;
+        }
+
+        //if player is dead, respawn them after 2 seconds if they have a spare life
+        if(playerActive == false && deadTimer > 120 && stocks > 0)
+        {
+            life += 100;
+            playerActive = true;
+            planePos = initialPlanePos;
+        }
+        
+        // for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
+        // {
+        //     for(int j = 0; j < MAX_ENEMIES; j ++)
+        //     {
+        //         //if(p_bullet[i].pBulRect.x < (enemy[j].enemyFrameRec.x + enemy[j].enemyFrameRec.width) && enemy[j].enemyFrameRec.x < (p_bullet[i].pBulRect.x + p_bullet[i].pBulRect.width) &&
+        //         //p_bullet[i].pBulRect.y < (enemy[j].enemyFrameRec.y + enemy[j].enemyFrameRec.height) && enemy[j].enemyFrameRec.y < (p_bullet[i].pBulRect.y + p_bullet[i].pBulRect.height) && p_bullet[i].isActive)
+        //         if(CheckCollisionRecs(enemy[j].collider, p_bullet[i].collider) && p_bullet[i].isActive)
+        //         {
+        //             enemy[j].enemyPos.x = (float)(GetRandomValue(0, screenWidth - 30)); 
+        //             enemy[j].enemyPos.y = (float)(GetRandomValue(-1000, -30));
+        //             p_bullet[i].isActive = false;
+        //             score += 100;
+        //             //Rectangle GetCollisionRec(Rectangle pBulRect, Rectangle enemyFrameRec);
+        //         }
+        //     }
+        // }
+
+        ////scrolling islands
+        for (int i = 0; i < MAX_ISLANDS; i++)
+        {
+            if(island[i].islandPos.y > screenHeight + 30)
+            {
+                island[i].islandPos.x = (float)(GetRandomValue(0, screenWidth - 60)); 
+                island[i].islandPos.y = (float)(GetRandomValue(-30, -500));
+                //enemy[i].collider.x = enemy[i].enemyPos.x;
+                //enemy[i].collider.y = enemy[i].enemyPos.y;
+            }
+        }
+
+        for (int i = 0; i < MAX_ISLANDS; i++)
+        {
+            island[i].islandPos.y += scrollingSpeed; 
+        }
+
+        
+
         ////enable debug hitbox
         if(IsKeyPressed(KEY_Z))
         {
@@ -439,7 +544,7 @@ int main(void)
             //ClearBackground(clear);
             ClearBackground(BLACK);
 
-            //tile map
+            ////tile map
             for (unsigned int i = 0; i < MAP_TILE_SIZE; i++)
             {
                 for (unsigned int j = 0; j < MAP_TILE_SIZE; j++)
@@ -448,6 +553,13 @@ int main(void)
                     //DrawTextureEx(seaTiles, (Vector2){ scrollingSpeed, 20 }, 0.0f, 2.0f, WHITE);
                 }
             }
+
+            ////draw scrolling islands
+            for (int i = 0; i < MAX_ISLANDS; i++)
+            {
+                DrawTexture(island[i].islandTex, island[i].islandPos.x, island[i].islandPos.y, WHITE);
+            }
+
 
             ////draw player bullets
             
@@ -479,17 +591,14 @@ int main(void)
             }
 
             ////draw player
-            
-            DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
-            if(draw == true) DrawRectangleLinesEx(pCollider, 3, GREEN);
+            if(playerActive)DrawTextureRec(planeTex, planeFrameRec, planePos, WHITE);
+            if(playerActive && draw == true) DrawRectangleLinesEx(pCollider, 3, GREEN);
 
-
-                          
             //draw hud
             DrawTexture(hudBar, 0, screenHeight - hudBar.height, WHITE);
             DrawText(TextFormat("%03i", score), 230, screenHeight - 67, 20, YELLOW);
             DrawRectangle( 12, screenHeight - 31, (float)life * 1.26f, (float)10.5f, GREEN);
-
+            DrawTextureRec (stockIcon, stockIconRec, stockPos, WHITE );
             //DrawTexture(pBullet, planePos.y, planePos.x, WHITE);
         
 
@@ -515,19 +624,23 @@ int main(void)
 //player movement bounds /done
 //player shoot /done
 //animated player sprite /done
-//player hurt
-//collision
+//player hurt /done
+//collision /done
 //hud bar /done
-//hud life count 
-//hud energy
+//hud life count //
+//hud energy bar /done
 //hud score /done
 //enemy spawn /done
 //enemy movement /done
-//enemy shoot
-//enemy hurt
+//enemy shoot /done
+//enemy hurt /done
 //sea background /done
 //scrolling sea background
 //islands
+
+////Extra////
+//draw hitbox debug key /done
+
 
 //////////////////////
 //by Antonio Ranieri//
