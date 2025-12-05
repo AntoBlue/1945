@@ -487,8 +487,8 @@ int main(void)
             //planePos = initialPlanePos;
         }
 
-        //if player is dead, respawn them after 2 seconds if they have a spare life
-        if(playerActive == false && deadTimer > 120 && stocks > 0)
+        //if player is dead, respawn them after 3 seconds if they have a spare life
+        if(playerActive == false && deadTimer > 180 && stocks > 0)
         {
             life += 100;
             playerActive = true;
